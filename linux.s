@@ -1,0 +1,9 @@
+.equ SYS_READ,  0
+.equ SYS_WRITE, 1
+.equ SYS_OPEN,  2
+.equ SYS_CLOSE, 3	
+.equ O_RDONLY,  0
+.equ O_CREAT_WRONLY_TRUNC, 03101
+
+.equ FILEDESCRIPTOR_LOCATION, 8
+
