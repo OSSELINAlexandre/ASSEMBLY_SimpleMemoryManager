@@ -1,9 +1,11 @@
-.include "linux.s"
+.include "commands_and_vars.s"
 .include "records_definition.s"
 
 .section .data
-	buffer_ptr:
-		long 0
+buffer_ptr:
+	.long 0
+record_size:
+	.long 1000
 .section .text
 
 .global _start
@@ -12,7 +14,6 @@ _start:
 	movq %rsp, %rbp
 	subq  $FILEDESCRIPTOR_LOCATION, %rsp
 	
-memory_manager_init:
 	callq init_manager
 	
 open_input_file:
@@ -24,8 +25,8 @@ open_input_file:
 	
 	movq  %rax, FILEDESCRIPTOR_LOCATION(%rbp)
 	
-	pushq $1000
-	callq allocate
+	pushq $record_size
+ 	callq allocate
 	movq %rax, buffer_ptr
 	pushq buffer_ptr
 	pushq FILEDESCRIPTOR_LOCATION(%rbp)

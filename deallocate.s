@@ -3,7 +3,7 @@
 	.equ HEADER_SIZE,          9
 	.equ AIVAILABILITY_OFFSET, 0
 	.equ SIZE_OFFSET,          1
-
+	.equ AVAILABILITY,   1
 
 .global deallocate
 .type deallocate, @function

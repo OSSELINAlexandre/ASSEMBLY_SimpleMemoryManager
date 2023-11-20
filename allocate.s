@@ -17,6 +17,8 @@
 
 	.equ SYS_BREAK, 12
 	
+.section .text
+
 .global init_manager
 .type init_manager, @function
 init_manager:
@@ -28,10 +30,10 @@ init_manager:
 	movq $0, %rdi	
 	syscall
 	
-	addq  $8, %rax            #Need to add one octet
+	addq  $8,   %rax            #Need to add one octet
 	movq  %rax, heap_begin
 	movq  %rax, heap_end
-	movq  $1,   init_manager
+	movq  $1,   manager_inited
 	
 	movq %rbp, %rsp
 	popq %rbp
@@ -49,9 +51,9 @@ allocate:
 	cmpq  $1, manager_inited
 	jne   ERROR
 	
-	movq  $heap_begin, %rdx
-	movq  $heap_end,   %rbx
-	movq  -16(%rbp),   %rcx
+	movq  heap_begin, %rdx
+	movq  heap_end,   %rbx
+	movq  -16(%rbp),  %rcx
 
 loop:
 	cmpq %rdx, %rbx
@@ -64,7 +66,7 @@ loop:
 	jg   INCREMENT_CURRENT
 	
  	movq HEADER_SIZE(%rdx), %rax
- 	movq $UNAVAILABLE, AIVAILABILITY_OFFSET(%rdx)
+ 	movq $UNAVAILABILITY, AIVAILABILITY_OFFSET(%rdx)
  	
  	jmp exit_function
 	
@@ -88,7 +90,7 @@ heap_space_needed:
 	 		
  	addq %rax, %rbx
  	movq %rbx, heap_end
- 	movq $UNAVAILABLE, AIVAILABILITY_OFFSET(%rdx)
+ 	movq $UNAVAILABILITY, AIVAILABILITY_OFFSET(%rdx)
  	subq $HEADER_SIZE, %rax
  	movq %rax, SIZE_OFFSET(%rdx)
  	
