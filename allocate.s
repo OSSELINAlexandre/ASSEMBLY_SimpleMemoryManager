@@ -1,9 +1,9 @@
 .section .data
 	heap_begin:
-		.long 0
+		.quad 0
 			
 	heap_end:
-		.long 0
+		.quad 0
 		
 	manager_inited:
 		.int 0 
@@ -11,9 +11,9 @@
 	.equ AVAILABILITY,   1
 	.equ UNAVAILABILITY, 0
 	
-	.equ HEADER_SIZE,          9
+	.equ HEADER_SIZE,          16 #Header could be smaller, but 8 bytes multiple simplify the calling of register (not having to call a movb or movl, everything is using the same movq instruction with R(xx) registers.
 	.equ AIVAILABILITY_OFFSET, 0
-	.equ SIZE_OFFSET,          1
+	.equ SIZE_OFFSET,          8
 
 	.equ SYS_BREAK, 12
 	
@@ -30,7 +30,7 @@ init_manager:
 	movq $0, %rdi	
 	syscall
 	
-	addq  $8,   %rax            #Need to add one octet
+	addq  $8,   %rax               #Need to add one octet to have the last adress and not the last available one
 	movq  %rax, heap_begin
 	movq  %rax, heap_end
 	movq  $1,   manager_inited
@@ -51,9 +51,9 @@ allocate:
 	cmpq  $1, manager_inited
 	jne   ERROR
 	
-	movq  heap_begin, %rdx
-	movq  heap_end,   %rbx
-	movq  -16(%rbp),  %rcx
+	movq  (heap_begin), %rdx
+	movq  (heap_end),   %rbx
+	movq  16(%rbp),  %rcx
 
 loop:
 	cmpq %rdx, %rbx
@@ -77,6 +77,8 @@ heap_space_needed:
 	pushq %rdx
 	pushq %rbx
 	
+	addq %rbx, %rcx
+ 	
 	movq $SYS_BREAK, %rax
 	movq %rcx, %rdi
  	syscall
@@ -84,17 +86,18 @@ heap_space_needed:
  	cmpq $0, %rax
  	je ERROR
  
- 	popq %rcx
+ 	popq %rbx
 	popq %rdx
-	popq %rbx
+	popq %rcx
 	 		
- 	addq %rax, %rbx
- 	movq %rbx, heap_end
- 	movq $UNAVAILABILITY, AIVAILABILITY_OFFSET(%rdx)
- 	subq $HEADER_SIZE, %rax
- 	movq %rax, SIZE_OFFSET(%rdx)
+ 	movq %rax, heap_end                                #changing the end
+ 	movq $UNAVAILABILITY, AIVAILABILITY_OFFSET(%rdx)   #setting the unavailable flag for the portion of memory
+ 	subq $HEADER_SIZE, %rax	                           
+ 	subq %rbx, %rax					   #taking the real memory space given by the Kernel
+ 	movq %rax, SIZE_OFFSET(%rdx)		           #putting in memory in the header the space available for this portion
  	
- 	movq HEADER_SIZE(%rdx), %rax
+ 	movq %rdx, %rax
+ 	addq $HEADER_SIZE, %rax			           #returning a %rax pointing after the header for writing the data
  	
  	jmp exit_function
  

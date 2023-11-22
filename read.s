@@ -3,9 +3,9 @@
 
 .section .data
 buffer_ptr:
-	.long 0
+	.quad 0
 record_size:
-	.long 1000
+	.quad 1000
 .section .text
 
 .global _start
@@ -25,7 +25,11 @@ open_input_file:
 	
 	movq  %rax, FILEDESCRIPTOR_LOCATION(%rbp)
 	
-	pushq $record_size
+	pushq record_size
+	
+	xor %rsi, %rsi
+	movq record_size, %rsi
+	pushq %rsi 
  	callq allocate
 	movq %rax, buffer_ptr
 	pushq buffer_ptr
@@ -35,8 +39,8 @@ open_input_file:
 .write_output:
 	movq $1, %rax
 	movq $1, %rdi
-	movq $buffer_ptr, %rsi
-	movq $1000, %rdx
+	movq buffer_ptr, %rsi
+	movq $972, %rdx
 	syscall	
 
 close_file:
